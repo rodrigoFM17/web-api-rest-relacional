@@ -13,6 +13,10 @@ const usuarioSchema = zod.object({
         invalid_type_error: "Task name must be a string",
         required_error: "Task name is required"
     }),
+    password: zod.string({
+        invalid_type_error: "Task password must be a string",
+        required_error: "Task password is required"
+    }),
     updated: zod.boolean({
         invalid_type_error: "Task must be a boolean"
     })

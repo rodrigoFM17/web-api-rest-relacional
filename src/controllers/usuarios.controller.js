@@ -1,5 +1,7 @@
 const db = require('../configs/db')
 const usuarioModel = require('../models/usuario.model')
+const bcrypt = require('bcrypt')
+const saltosBcrypt = process.env.SALTOS_BCRYPT
 
 const index = async (req, res) => {
     try{
@@ -27,7 +29,23 @@ const index = async (req, res) => {
     
 }
 
-const getByEmail = async (req, res) =>{
+const getById = async (req, res) =>{
+    try{
+        const usuarioId = req.params.id
+        
+        const usuario = await db.execute(`select * from usuarios where id=? `, [usuarioId]) 
+
+        return res.status(200).json({
+            message: 'usuario obtenido correctamente',
+            usuario: usuario[0]
+        })
+    
+    } catch (error){
+        return res.status(406).json({
+            message: "hubo un error al intentar obtener al usuarios",
+            error: error.message
+        })
+    }
 
 }
 
@@ -42,16 +60,19 @@ const create = async (req, res) =>{
                 error: JSON.parse(validacion.error.message)
             })
         }
+
         const {nombre, apellido, email} = req.body
         const {updated, deleted} = validacion.data
+        const password = bcrypt.hashSync(req.body.password, saltosBcrypt)
         const hoy = new Date()
         try{
             //await db.execute(`Insert into usuarios (nombre, apellido, email) values ('${nombre}', '${apellido}', '${email}')`)
-            await db.execute(`Insert into usuarios (nombre, apellido, email, updated, deleted, created_at values (?, ?, ?, ?, ?, ?)`, [nombre, apellido, email, updated, deleted, hoy])
+            await db.execute(`Insert into usuarios (nombre, apellido, email, password, updated, deleted, created_at values (?, ?, ?, ?, ?, ?, ?)`, [nombre, apellido, email, password, updated, deleted, hoy])
 
             return res.status(201).json({
                 message: 'usuario creado exitosamente',
             })
+
 
         }catch (error){
             return res.status(406).json({
@@ -162,7 +183,7 @@ const deleteFisico = async (req,res) =>{
 
 module.exports = {
     index,
-    getByEmail,
+    getById,
     create,
     delete: deleteLogico,
     updateParcial,
